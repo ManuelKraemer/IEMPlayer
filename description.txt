@@ -1,0 +1,2 @@
+The emotion based music player can predict which music you want to hear right now. Without saying a single word or clicking a single button! 
+Just take a picture of your face and the algorithm can extract your emotion to give you the playlist that fits best!
