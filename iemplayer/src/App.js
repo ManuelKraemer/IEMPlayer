@@ -4,6 +4,8 @@ import Navigation from './components/nav/nav';
 import Logo from './components/logo/logo';
 import ImageLink from './components/ImageLink/ImageLink';
 import Rank from './components/Rank/Rank';
+import SignIn from './components/SignIn/SignIn';
+import Register from './components/Register/Register';
 import Particles from 'react-particles-js';
 import Clarifai from 'clarifai';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
@@ -18,12 +20,12 @@ const particleOptions = {
       value: 100,
       density:{
         enable: true,
-        value_area: 600 
+        value_area: 400 
       }
     },
     "move": {
-      "enable": false,  //Just for testing!
-      "speed": 2,
+      "enable": true,  //false just for testing!
+      "speed": 1.5,
       "direction": "bottom",
       "random": false,
       "straight": false,
@@ -59,7 +61,8 @@ class App extends Component {
     this.state = {
       input: '',
       imageURL: '',
-      box: {}
+      box: {},
+      route: 'signin'
     }
   }
 
@@ -94,18 +97,28 @@ class App extends Component {
     }).catch((err)=>{
       console.log("something went wrong");
     });
+  }
 
+  onRouteChange = (route) => {
+    this.setState({route: route});
   }
 
   render() {
     return (
       <div className="App">
         <Particles className='particles' params={particleOptions}/>
-        <Navigation />
-        <Logo />
-        <Rank />
-        <ImageLink onInputChange={this.onInputChange} onSubmit={this.onSubmit}/>
-        <FaceRecognition box={this.state.box} ImageURL={this.state.imageURL}/>
+        {this.state.route === 'home'
+        ?<div>
+          <Navigation onRouteChange={this.onRouteChange}/>
+          <Logo />
+          <Rank />
+          <ImageLink onInputChange={this.onInputChange} onSubmit={this.onSubmit}/>
+          <FaceRecognition box={this.state.box} ImageURL={this.state.imageURL}/>
+        </div>
+        : (this.state.route === 'signin'
+          ? <SignIn onRouteChange={this.onRouteChange} />
+          : <Register onRouteChange={this.onRouteChange} />)
+        }
       </div>
     );
   }
