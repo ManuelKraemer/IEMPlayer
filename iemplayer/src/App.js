@@ -15,10 +15,38 @@ const app = new Clarifai.App({
 const particleOptions = {
   particles: {
     number:{
-      value: 150,
+      value: 100,
       density:{
         enable: true,
         value_area: 600 
+      }
+    },
+    "move": {
+      "enable": false,  //Just for testing!
+      "speed": 2,
+      "direction": "bottom",
+      "random": false,
+      "straight": false,
+      "out_mode": "out",
+      "bounce": false,
+      "attract": {
+        "enable": false,
+        "rotateX": 3447.335930860874,
+        "rotateY": 3607.6771369474263
+      }
+    }
+  },
+  "interactivity": {
+    "detect_on": "window",
+    "events": {
+      "onhover": {
+        "enable": true,
+        "mode": "repulse"
+      }
+    },
+    "modes": {
+      "repulse": {
+        "distance": 60
       }
     }
   }
@@ -30,8 +58,26 @@ class App extends Component {
     super(props);
     this.state = {
       input: '',
-      imageURL: ''
+      imageURL: '',
+      box: {}
     }
+  }
+
+  calculateFace = (data) => {
+    const boundingBox = data.outputs[0].data.regions[0].region_info.bounding_box;
+    const image = document.getElementById('inputImage');
+    const width = Number(image.width);
+    const height = Number(image.height);
+    return {
+      leftCol: boundingBox.left_col * width,
+      topRow: boundingBox.top_row * height,
+      rightCol: width - boundingBox.right_col * width,
+      bottomRow: height - boundingBox.bottom_row * height,
+    }
+  }
+
+  displayFaceBox = (box) =>{
+    this.setState({box: box});
   }
   
   onInputChange = (event) => {
@@ -40,16 +86,14 @@ class App extends Component {
 
   onSubmit = () =>{
     this.setState({imageURL: this.state.input});
-    console.log(this.state.imageURL);
     
-    app.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input).then(
-    function(response) {
+    app.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
+    .then(response => {
       console.log(response.outputs[0].data.regions[0].region_info.bounding_box);
-    },
-    function(err) {
-      // there was an error
-    }
-  );
+      this.displayFaceBox(this.calculateFace(response));
+    }).catch((err)=>{
+      console.log("something went wrong");
+    });
 
   }
 
@@ -61,7 +105,7 @@ class App extends Component {
         <Logo />
         <Rank />
         <ImageLink onInputChange={this.onInputChange} onSubmit={this.onSubmit}/>
-        <FaceRecognition ImageURL={this.state.imageURL}/>
+        <FaceRecognition box={this.state.box} ImageURL={this.state.imageURL}/>
       </div>
     );
   }
