@@ -20,7 +20,7 @@ const particleOptions = {
       value: 100,
       density:{
         enable: true,
-        value_area: 400 
+        value_area: 600 
       }
     },
     "move": {
@@ -62,8 +62,26 @@ class App extends Component {
       input: '',
       imageURL: '',
       box: {},
-      route: 'signin'
+      route: 'signin',
+      user: {
+        id: '',
+        name: '',
+        email: '',
+        entries: 0,
+        joined: ''
+      }
     }
+  }
+
+
+  loadUser = (data) => {
+    this.setState({user: {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      entries: data.entries,
+      joined: data.joined
+    }})
   }
 
   calculateFace = (data) => {
@@ -92,7 +110,17 @@ class App extends Component {
     
     app.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
     .then(response => {
-      console.log(response.outputs[0].data.regions[0].region_info.bounding_box);
+      fetch('http://localhost:3001/image', {
+        method: 'put',
+        headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                "id": this.state.user.id
+            })
+        })
+          .then(res => res.json())
+          .then(count => {
+            this.setState(Object.assign(this.state.user, {entries: count}))
+          })
       this.displayFaceBox(this.calculateFace(response));
     }).catch((err)=>{
       console.log("something went wrong");
@@ -111,13 +139,13 @@ class App extends Component {
         ?<div>
           <Navigation onRouteChange={this.onRouteChange}/>
           <Logo />
-          <Rank />
+          <Rank name={this.state.user.name} entries={this.state.user.entries}/>
           <ImageLink onInputChange={this.onInputChange} onSubmit={this.onSubmit}/>
           <FaceRecognition box={this.state.box} ImageURL={this.state.imageURL}/>
         </div>
         : (this.state.route === 'signin'
-          ? <SignIn onRouteChange={this.onRouteChange} />
-          : <Register onRouteChange={this.onRouteChange} />)
+          ? <SignIn onRouteChange={this.onRouteChange} loadUser={this.loadUser}/>
+          : <Register onRouteChange={this.onRouteChange} loadUser={this.loadUser} />)
         }
       </div>
     );
