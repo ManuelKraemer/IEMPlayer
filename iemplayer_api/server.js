@@ -2,6 +2,18 @@ const express = require("express");
 const parser = require("body-parser");
 const bcrypt = require("bcrypt-nodejs");
 const cors = require("cors");
+const knex = require("knex");
+
+const db = knex({
+    client: 'pg',
+    version: '10.0',
+    connection: {
+      host : '127.0.0.1',
+      user : 'Manuel',
+      password : '',
+      database : 'IEMPlayer'
+    }
+  });
 
 const app = express();
 
@@ -25,6 +37,10 @@ const database = {
 };
 
 
+db.select('*').from('users').then(data => {
+    console.log(data);
+});
+
 app.use(parser.json());
 app.use(cors());
 
@@ -43,15 +59,16 @@ app.post('/signin', (req, res)=>{
 
 app.post('/register', (req, res)=>{
     let {email, name, password} = req.body;
-    database.users.push({
-        id: '1235',
-        name: name,
+    db('users')
+    .returning('*')
+    .insert({
         email: email,
-        password: password,
-        entries: 0,
-        joined: new Date() 
+        name: name,
+        joined: new Date()
+    }).then(user =>{
+        res.json(user[0]);
     })
-    res.json(database.users[database.users.length -1]);
+    .catch(err => res.status(400).json('unable to register'))
 });
 
 
